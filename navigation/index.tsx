@@ -4,8 +4,11 @@
  *
  */
 import { FontAwesome } from '@expo/vector-icons';
+import { ContextsFromReactNavigationPlugin } from "@objectiv/plugin-react-navigation";
+import { ObjectivProvider, ReactNativeTracker } from "@objectiv/tracker-react-native";
+import { DebugTransport } from "@objectiv/transport-debug";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { ColorSchemeName, Pressable } from 'react-native';
@@ -20,12 +23,26 @@ import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../typ
 import LinkingConfiguration from './LinkingConfiguration';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+  const navigationContainerRef = useNavigationContainerRef();
+
+  const tracker = new ReactNativeTracker({
+    applicationId: 'native-react-test',
+    transport: new DebugTransport(),
+    plugins: [
+      new ContextsFromReactNavigationPlugin({ navigationContainerRef })
+    ]
+  })
+
   return (
-    <NavigationContainer
-      linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RootNavigator />
-    </NavigationContainer>
+    <ObjectivProvider tracker={tracker}>
+      <NavigationContainer
+        linking={LinkingConfiguration}
+        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+        ref={navigationContainerRef}
+      >
+        <RootNavigator />
+      </NavigationContainer>
+    </ObjectivProvider>
   );
 }
 
